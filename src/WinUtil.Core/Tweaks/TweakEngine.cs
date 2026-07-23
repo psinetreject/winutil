@@ -81,6 +81,9 @@ public sealed class TweakEngine : ITweakEngine
 
         var failures = new List<string>();
 
+        try
+        {
+
         // 1. Declarative registry changes. On undo we write OriginalValue; the "<RemoveEntry>" sentinel
         //    is honored by IRegistryService.SetValue itself, so no special-casing is needed here.
         foreach (var action in tweak.Registry)
@@ -168,6 +171,20 @@ public sealed class TweakEngine : ITweakEngine
 
         progress?.Report(TaskProgress.Completed());
         return OperationResult.Ok($"{direction} '{tweak.Id}' completed");
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // Any unexpected failure (e.g. a NullReferenceException in a service call or a custom
+            // action's setup) is logged with the tweak id + full stack and returned as a result, so
+            // the batch keeps going and the UI never sees a bare exception.
+            _logger.LogError(ex, "Unexpected error while {Direction}-ing tweak {TweakId}", direction, tweak.Id);
+            progress?.Report(TaskProgress.Failed(ex.Message));
+            return OperationResult.Fail($"{direction} '{tweak.Id}' failed: {ex.Message}");
+        }
     }
 
     private TweakActionContext BuildContext(IProgress<TaskProgress>? progress, CancellationToken cancellationToken) => new()
