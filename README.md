@@ -1,3 +1,13 @@
+> **🔁 Unofficial .NET 10 rewrite.** This fork reimplements WinUtil from PowerShell into a
+> **.NET 10 / C# (WPF)** application. It is **not affiliated with, endorsed by, or maintained by
+> Chris Titus Tech / CT Tech Group LLC.** The rewrite lives in [`dotnet/`](dotnet/) — see
+> [`dotnet/README.md`](dotnet/README.md) to build and run it. App/tweak/config data and
+> `autounattend.xml` are derived from the original
+> [ChrisTitusTech/winutil](https://github.com/ChrisTitusTech/winutil) (MIT); see [`NOTICE`](NOTICE).
+> The original project's documentation follows below, unchanged.
+
+---
+
 # Chris Titus Tech's Windows Utility
 
 [![Version](https://img.shields.io/github/v/release/ChrisTitusTech/winutil?color=%230567ff&label=Latest%20Release&style=for-the-badge)](https://github.com/ChrisTitusTech/winutil/releases/latest)

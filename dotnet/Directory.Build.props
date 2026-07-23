@@ -1,0 +1,25 @@
+<Project>
+
+  <!-- Common build settings for every project under dotnet/.
+       Individual projects override TargetFramework where needed
+       (WinUtil.Core / WinUtil.Tests target net10.0; UI/platform target net10.0-windows). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Platforms>x64;ARM64</Platforms>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- NU1603/NU1602: benign NuGet version rounding (pinned versions were placeholders).
+         The CAxxxx set are perf/style/design analyzer nits (LoggerMessage delegates, sealing,
+         static-on-generic, identifier naming, logging templates) — noise for a system utility.
+         Real compiler warnings still fail the build. -->
+    <NoWarn>$(NoWarn);NU1603;NU1602;CA1000;CA1716;CA1720;CA1848;CA1852;CA1873;CA2254</NoWarn>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <!-- NOTE: InvariantGlobalization must stay OFF — it breaks WPF data binding
+         (XmlLanguage.GetSpecificCulture on the default en-US xml:lang throws). -->
+    <Product>WinUtil</Product>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,253 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Ports the ORIGINAL winutil (xaml/inputXML.xaml) visual language onto the .NET 10 WPF port.
+        Every colour/brush below is a {DynamicResource <Token>} whose name matches config/themes.json,
+        so the whole surface re-themes live when ThemeService swaps the palette. Non-colour values
+        (corner radii, paddings, font sizes) are literal for a flat, modern, rounded look.
+    -->
+
+    <!-- =====================================================================
+         Top-nav tab chip. TargetType=Button so it slots into an ItemsControl
+         over MainViewModel.Tabs; the active tab is driven by a DataTrigger on
+         the bound TabViewModel.IsSelected (fills with ButtonBackgroundSelectedColor).
+         ===================================================================== -->
+    <Style x:Key="TabToggleButtonStyle" TargetType="Button">
+        <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundColor}" />
+        <Setter Property="Background" Value="{DynamicResource ButtonBackgroundColor}" />
+        <Setter Property="FontSize" Value="{DynamicResource TabButtonFontSize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Height" Value="{DynamicResource TabButtonHeight}" />
+        <Setter Property="Padding" Value="16,3" />
+        <Setter Property="Margin" Value="3,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="ChipBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{DynamicResource BorderColor}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ChipBorder" Property="Background"
+                                    Value="{DynamicResource ButtonBackgroundMouseoverColor}" />
+                        </Trigger>
+                        <!-- Selected state: bound TabViewModel.IsSelected == true. -->
+                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                            <Setter TargetName="ChipBorder" Property="Background"
+                                    Value="{DynamicResource ButtonBackgroundSelectedColor}" />
+                            <Setter TargetName="ChipBorder" Property="BorderBrush"
+                                    Value="{DynamicResource ButtonBackgroundSelectedColor}" />
+                            <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundColor}" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- =====================================================================
+         Borderless window min / max / close glyph buttons (Segoe MDL2 Assets).
+         Neutral hover; the close button opts into a red hover inline via BasedOn.
+         ===================================================================== -->
+    <Style x:Key="WindowControlButtonStyle" TargetType="Button">
+        <Setter Property="Width" Value="{DynamicResource IconButtonSize}" />
+        <Setter Property="Height" Value="{DynamicResource IconButtonSize}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource MainForegroundColor}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+        <Setter Property="FontSize" Value="{DynamicResource CloseIconFontSize}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bg" Background="{TemplateBinding Background}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bg" Property="Background"
+                                    Value="{DynamicResource ButtonBackgroundMouseoverColor}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- =====================================================================
+         Rounded, bordered search box with a Segoe MDL2 magnifier and an
+         inline "placeholder-ish" hint shown while the text is empty.
+         ===================================================================== -->
+    <Style x:Key="SearchBoxStyle" TargetType="TextBox">
+        <Setter Property="Foreground" Value="{DynamicResource MainForegroundColor}" />
+        <Setter Property="Background" Value="{DynamicResource MainBackgroundColor}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Height" Value="{DynamicResource SearchBarHeight}" />
+        <Setter Property="FontSize" Value="{DynamicResource SearchBarTextBoxFontSize}" />
+        <Setter Property="Padding" Value="10,0,30,0" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="CaretBrush" Value="{DynamicResource MainForegroundColor}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6">
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center" />
+                            <TextBlock x:Name="Placeholder"
+                                       Text="Search applications and tweaks…"
+                                       Margin="10,0,0,0"
+                                       VerticalAlignment="Center" HorizontalAlignment="Left"
+                                       Foreground="{DynamicResource MainForegroundColor}"
+                                       Opacity="0.5"
+                                       IsHitTestVisible="False"
+                                       Visibility="Collapsed" />
+                            <TextBlock Text="&#xE721;"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       HorizontalAlignment="Right" VerticalAlignment="Center"
+                                       Margin="0,0,10,0"
+                                       FontSize="{DynamicResource IconFontSize}"
+                                       Foreground="{DynamicResource ButtonBackgroundSelectedColor}"
+                                       IsHitTestVisible="False" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Text" Value="">
+                            <Setter TargetName="Placeholder" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- =====================================================================
+         Pill-shaped category filter chip (Install-tab category filters).
+         ===================================================================== -->
+    <Style x:Key="FilterChipStyle" TargetType="Button">
+        <Setter Property="Margin" Value="2" />
+        <Setter Property="Padding" Value="14,4" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundColor}" />
+        <Setter Property="Background" Value="{DynamicResource ButtonBackgroundColor}" />
+        <Setter Property="FontSize" Value="{DynamicResource ButtonFontSize}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="ChipBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{DynamicResource BorderColor}"
+                            BorderThickness="1"
+                            CornerRadius="14"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ChipBorder" Property="Background"
+                                    Value="{DynamicResource ButtonBackgroundMouseoverColor}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="ChipBorder" Property="Background"
+                                    Value="{DynamicResource ButtonBackgroundSelectedColor}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- =====================================================================
+         Small bold sidebar section header ("Actions", "Categories", …).
+         ===================================================================== -->
+    <Style x:Key="SidebarSectionHeaderStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource MainForegroundColor}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Opacity" Value="0.65" />
+        <Setter Property="Margin" Value="2,10,2,4" />
+    </Style>
+
+    <!-- =====================================================================
+         Full-width, bordered, left-aligned dark sidebar button.
+         ===================================================================== -->
+    <Style x:Key="SidebarButtonStyle" TargetType="Button">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="Margin" Value="0,2" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundColor}" />
+        <Setter Property="Background" Value="{DynamicResource ButtonBackgroundColor}" />
+        <Setter Property="FontSize" Value="{DynamicResource ButtonFontSize}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{DynamicResource BorderColor}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background"
+                                    Value="{DynamicResource ButtonBackgroundMouseoverColor}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background"
+                                    Value="{DynamicResource ButtonBackgroundSelectedColor}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- =====================================================================
+         Rounded, bordered app-entry card (mirrors the original AppEntryBorderStyle).
+         ===================================================================== -->
+    <Style x:Key="AppCardBorderStyle" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource AppInstallUnselectedColor}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="8,6" />
+        <Setter Property="Margin" Value="4" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+    </Style>
+
+    <!-- =====================================================================
+         Category header inside a tab body ("- Browsers", "- Development", …).
+         ===================================================================== -->
+    <Style x:Key="CategoryHeaderStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource MainForegroundColor}" />
+        <Setter Property="FontSize" Value="{DynamicResource HeaderFontSize}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Margin" Value="6,12,6,6" />
+    </Style>
+
+</ResourceDictionary>

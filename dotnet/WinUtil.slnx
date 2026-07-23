@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WinUtil.Core/WinUtil.Core.csproj" />
+    <Project Path="src/WinUtil.Platform/WinUtil.Platform.csproj" />
+    <Project Path="src/WinUtil.App/WinUtil.App.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WinUtil.Tests/WinUtil.Tests.csproj" />
+  </Folder>
+  <Folder Name="/solution/">
+    <File Path="Directory.Build.props" />
+    <File Path="global.json" />
+    <File Path="README.md" />
+  </Folder>
+</Solution>

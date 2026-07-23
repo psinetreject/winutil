@@ -1,0 +1,194 @@
+<UserControl x:Class="WinUtil.App.Views.TweaksView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:WinUtil.App.ViewModels"
+             Background="{DynamicResource MainBackgroundColor}"
+             TextElement.Foreground="{DynamicResource MainForegroundColor}">
+    <UserControl.Resources>
+        <!-- Accent (cyan) section header, matching the original winutil label colour. -->
+        <Style x:Key="AccentHeaderStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource LabelboxForegroundColor}" />
+            <Setter Property="FontSize" Value="{DynamicResource HeaderFontSize}" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Margin" Value="6,14,6,6" />
+        </Style>
+
+        <!-- Minimal toggle switch (CheckBox retemplated). -->
+        <Style x:Key="ToggleSwitch" TargetType="CheckBox">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Border x:Name="Track" Width="42" Height="22" CornerRadius="11"
+                                Background="{DynamicResource ToggleButtonOffColor}">
+                            <Border x:Name="Thumb" Width="16" Height="16" CornerRadius="8" Margin="3"
+                                    HorizontalAlignment="Left" Background="#FFF7F7F7" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Track" Property="Background"
+                                        Value="{DynamicResource ToggleButtonOnColor}" />
+                                <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- A toggle tweak (Customize Preferences): label left, switch right. -->
+        <DataTemplate DataType="{x:Type vm:ToggleTweakViewModel}">
+            <Grid Margin="6,5" ToolTip="{Binding Description}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding Content}" VerticalAlignment="Center"
+                           TextWrapping="Wrap" Margin="0,0,12,0" />
+                <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitch}"
+                          VerticalAlignment="Center" IsChecked="{Binding IsOn}" />
+            </Grid>
+        </DataTemplate>
+
+        <!-- A checkbox tweak (Essential / Advanced): box + label + "(?)" help affordance. -->
+        <DataTemplate DataType="{x:Type vm:TweakItemViewModel}">
+            <Grid Margin="6,2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}"
+                          Content="{Binding Content}" VerticalAlignment="Center"
+                          ToolTip="{Binding Description}"
+                          Foreground="{DynamicResource MainForegroundColor}" />
+                <!-- "(?)": opens the docs link when one exists, otherwise just shows the description. -->
+                <TextBlock Grid.Column="1" Text="(?)" VerticalAlignment="Center" Margin="6,0,0,0"
+                           Cursor="Hand"
+                           Foreground="{DynamicResource LinkForegroundColor}"
+                           ToolTip="{Binding Description}"
+                           ToolTipService.ShowOnDisabled="True">
+                    <TextBlock.InputBindings>
+                        <MouseBinding MouseAction="LeftClick" Command="{Binding OpenLinkCommand}" />
+                    </TextBlock.InputBindings>
+                </TextBlock>
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <DockPanel>
+        <!-- BOTTOM action bar: Run / Undo. -->
+        <Border DockPanel.Dock="Bottom" Padding="10"
+                Background="{DynamicResource MainBackgroundColor}"
+                BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="5">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <Button Content="Run Tweaks" Command="{Binding RunTweaksCommand}"
+                        Style="{DynamicResource SidebarButtonStyle}"
+                        HorizontalContentAlignment="Center"
+                        Width="180" Margin="5" />
+                <Button Content="Undo Selected Tweaks" Command="{Binding UndoSelectedTweaksCommand}"
+                        Style="{DynamicResource SidebarButtonStyle}"
+                        HorizontalContentAlignment="Center"
+                        Width="180" Margin="5" />
+            </StackPanel>
+        </Border>
+
+        <!-- MAIN body. -->
+        <Grid Margin="6">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Recommended selections. -->
+            <StackPanel Grid.Row="0" Margin="4,0,4,4">
+                <TextBlock Text="Recommended Selections:" FontSize="14" FontWeight="SemiBold"
+                           Foreground="{DynamicResource LabelboxForegroundColor}" Margin="2,2,2,4" />
+                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Button Content="Standard" Command="{Binding ApplyPresetStandardCommand}"
+                            Style="{DynamicResource SidebarButtonStyle}"
+                            HorizontalContentAlignment="Center" Width="150" Margin="2" />
+                    <Button Content="Minimal" Command="{Binding ApplyPresetMinimalCommand}"
+                            Style="{DynamicResource SidebarButtonStyle}"
+                            HorizontalContentAlignment="Center" Width="150" Margin="2" />
+                    <Button Content="Advanced" Command="{Binding ApplyPresetAdvancedCommand}"
+                            Style="{DynamicResource SidebarButtonStyle}"
+                            HorizontalContentAlignment="Center" Width="150" Margin="2" />
+                    <Button Content="Clear" Command="{Binding ClearSelectionCommand}"
+                            Style="{DynamicResource SidebarButtonStyle}"
+                            HorizontalContentAlignment="Center" Width="150" Margin="2" />
+                    <Button Content="Get Installed Tweaks" Command="{Binding GetInstalledTweaksCommand}"
+                            Style="{DynamicResource SidebarButtonStyle}"
+                            HorizontalContentAlignment="Center" Width="150" Margin="2" />
+                    <Button Content="AppX Removal" Command="{Binding OpenAppxRemovalCommand}"
+                            Style="{DynamicResource SidebarButtonStyle}"
+                            HorizontalContentAlignment="Center" Width="150" Margin="2" />
+                </WrapPanel>
+            </StackPanel>
+
+            <!-- Two 50/50 columns, each independently scrollable. -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- LEFT: Essential + Advanced checkbox tweaks, OOSU, DNS. -->
+                <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled" Margin="0,0,4,0">
+                    <StackPanel>
+                        <TextBlock Text="Essential Tweaks" Style="{StaticResource AccentHeaderStyle}" />
+                        <ItemsControl ItemsSource="{Binding EssentialTweaks}" />
+
+                        <TextBlock Text="Advanced Tweaks - CAUTION" Style="{StaticResource AccentHeaderStyle}" />
+                        <ItemsControl ItemsSource="{Binding AdvancedTweaks}" />
+
+                        <Button Content="O&amp;O ShutUp10++ - Run" Command="{Binding RunOosuCommand}"
+                                Style="{DynamicResource SidebarButtonStyle}"
+                                HorizontalContentAlignment="Center" Margin="6,10,6,4" />
+
+                        <StackPanel Orientation="Horizontal" Margin="6,6,6,10" VerticalAlignment="Center">
+                            <TextBlock Text="DNS - Set to:" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <ComboBox Width="200" VerticalAlignment="Center"
+                                      ItemsSource="{Binding DnsOptions}"
+                                      DisplayMemberPath="Name"
+                                      SelectedItem="{Binding SelectedDns}" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- RIGHT: Customize Preferences toggles + Performance plans. -->
+                <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled" Margin="4,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Customize Preferences" Style="{StaticResource AccentHeaderStyle}" />
+                        <ItemsControl ItemsSource="{Binding Toggles}" />
+
+                        <TextBlock Text="Performance Plans - NOT FOR LAPTOPS"
+                                   Style="{StaticResource AccentHeaderStyle}" />
+                        <Button Content="Ultimate Performance Profile - Disable"
+                                Command="{Binding DisableUltimatePerformanceCommand}"
+                                Style="{DynamicResource SidebarButtonStyle}"
+                                HorizontalContentAlignment="Center" Margin="6,4" />
+                        <Button Content="Ultimate Performance Profile - Enable"
+                                Command="{Binding EnableUltimatePerformanceCommand}"
+                                Style="{DynamicResource SidebarButtonStyle}"
+                                HorizontalContentAlignment="Center" Margin="6,4" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- Accent note below the columns. -->
+            <Border Grid.Row="2" Margin="4,8,4,0" Padding="8"
+                    BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="5">
+                <TextBlock TextWrapping="Wrap"
+                           Foreground="{DynamicResource LabelboxForegroundColor}">
+                    Note: Hover over items to get a better description. Please be careful as many of these
+                    tweaks will heavily modify your system.<LineBreak />Recommended selections are for normal
+                    users and if you are unsure do NOT check anything else!
+                </TextBlock>
+            </Border>
+        </Grid>
+    </DockPanel>
+</UserControl>

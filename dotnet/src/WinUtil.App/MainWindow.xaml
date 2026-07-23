@@ -1,0 +1,167 @@
+<Window x:Class="WinUtil.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:WinUtil.App.ViewModels"
+        xmlns:views="clr-namespace:WinUtil.App.Views"
+        Title="WinUtil (.NET 10)"
+        Height="700" Width="1200"
+        MinHeight="600" MinWidth="900"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        UseLayoutRounding="True"
+        Background="{DynamicResource MainBackgroundColor}"
+        TextElement.Foreground="{DynamicResource MainForegroundColor}"
+        FontFamily="{DynamicResource FontFamily}">
+
+    <!-- Borderless chrome: CaptionHeight=0 removes the OS caption; the custom title
+         bar below handles drag/maximize. ResizeBorderThickness keeps edge-resize. -->
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="6" CornerRadius="0" GlassFrameThickness="0" />
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <views:EnumBooleanConverter x:Key="EnumBool" />
+
+        <!-- Map each tab view-model to its View. -->
+        <DataTemplate DataType="{x:Type vm:InstallViewModel}">
+            <views:InstallView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:TweaksViewModel}">
+            <views:TweaksView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ConfigViewModel}">
+            <views:ConfigView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:UpdatesViewModel}">
+            <views:UpdatesView />
+        </DataTemplate>
+
+        <!-- Not-yet-built tabs (Win11 ISO, AppX). -->
+        <DataTemplate DataType="{x:Type vm:PlaceholderViewModel}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Title}" FontSize="22" FontWeight="Bold"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding Message}" Opacity="0.7" Margin="0,8,0,0"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+        </DataTemplate>
+    </Window.Resources>
+
+    <!-- Thin outline so the borderless window reads as a distinct surface. -->
+    <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="1"
+            Background="{DynamicResource MainBackgroundColor}">
+        <DockPanel>
+
+            <!-- ============================ TOP BAR ============================ -->
+            <Border x:Name="TitleBar" DockPanel.Dock="Top" Padding="10,6"
+                    Background="{DynamicResource MainBackgroundColor}"
+                    MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <!-- DockPanel so window controls + source cluster are always placed first;
+                     the tab row and search box absorb any horizontal shrink. -->
+                <DockPanel LastChildFill="True">
+
+                    <!-- Settings affordance + window min/max/close (far right). -->
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- Settings gear: visual affordance only for now (no backing command yet). -->
+                        <Button Content="&#xE713;" Style="{StaticResource WindowControlButtonStyle}"
+                                FontSize="{DynamicResource SettingsIconFontSize}"
+                                ToolTip="Settings (coming soon)" IsEnabled="False" />
+                        <Button Content="&#xE921;" Style="{StaticResource WindowControlButtonStyle}"
+                                ToolTip="Minimize" Click="MinimizeButton_Click" />
+                        <Button x:Name="MaximizeButton" Click="MaximizeButton_Click">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource WindowControlButtonStyle}">
+                                    <Setter Property="Content" Value="&#xE922;" />
+                                    <Setter Property="ToolTip" Value="Maximize" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding WindowState,
+                                                     RelativeSource={RelativeSource AncestorType=Window}}"
+                                                     Value="Maximized">
+                                            <Setter Property="Content" Value="&#xE923;" />
+                                            <Setter Property="ToolTip" Value="Restore" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Button Content="&#xE8BB;" Style="{StaticResource WindowControlButtonStyle}"
+                                ToolTip="Close" Click="CloseButton_Click" />
+                    </StackPanel>
+
+                    <!-- Package-manager source + theme selector (right, left of the window controls). -->
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center"
+                                Margin="8,0,10,0">
+                        <TextBlock Text="Source:" VerticalAlignment="Center" Margin="0,0,6,0" Opacity="0.8" />
+                        <RadioButton GroupName="pm" Content="winget" VerticalAlignment="Center" Margin="0,0,8,0"
+                                     IsChecked="{Binding Shell.PackageManager, Converter={StaticResource EnumBool}, ConverterParameter=Winget}" />
+                        <RadioButton GroupName="pm" Content="choco" VerticalAlignment="Center" Margin="0,0,12,0"
+                                     IsChecked="{Binding Shell.PackageManager, Converter={StaticResource EnumBool}, ConverterParameter=Choco}" />
+                        <ComboBox Width="86" ItemsSource="{Binding ThemeOptions}"
+                                  SelectedItem="{Binding ThemeMode}" VerticalAlignment="Center"
+                                  ToolTip="UI theme" />
+                    </StackPanel>
+
+                    <!-- Brand: placeholder "W" logo mark + wordmark (far left). Replace with real asset later. -->
+                    <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center"
+                                Margin="6,0,16,0">
+                        <Border Width="28" Height="28" CornerRadius="6"
+                                Background="{DynamicResource ButtonBackgroundSelectedColor}"
+                                VerticalAlignment="Center">
+                            <TextBlock Text="W" FontWeight="Bold" FontSize="16"
+                                       Foreground="{DynamicResource MainForegroundColor}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="WinUtil" FontSize="16" FontWeight="Bold"
+                                   VerticalAlignment="Center" Margin="8,0,0,0" />
+                    </StackPanel>
+
+                    <!-- Tab chips over MainViewModel.Tabs; SelectTabCommand toggles IsSelected. -->
+                    <ItemsControl DockPanel.Dock="Left" ItemsSource="{Binding Tabs}" VerticalAlignment="Center">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:TabViewModel}">
+                                <Button Content="{Binding Header}"
+                                        Style="{StaticResource TabToggleButtonStyle}"
+                                        Command="{Binding DataContext.SelectTabCommand,
+                                                  RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Wide rounded search box (fills remaining space) bound to the shared shell search text. -->
+                    <TextBox Style="{StaticResource SearchBoxStyle}"
+                             MinWidth="120" Margin="14,0,14,0" VerticalAlignment="Center"
+                             Text="{Binding Shell.SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                </DockPanel>
+            </Border>
+
+            <!-- ========================= STATUS BAR ========================= -->
+            <Border DockPanel.Dock="Bottom" Padding="10,6"
+                    Background="{DynamicResource GroupBorderBackgroundColor}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ProgressBar Grid.Row="0" Height="4" Maximum="100"
+                                 Value="{Binding Shell.ProgressPercent}"
+                                 IsIndeterminate="{Binding Shell.IsIndeterminate}"
+                                 Foreground="{DynamicResource ProgressBarForegroundColor}"
+                                 Background="Transparent" BorderThickness="0" />
+                    <TextBlock Grid.Row="1" Margin="0,4,0,0"
+                               Text="{Binding Shell.StatusMessage}"
+                               Foreground="{DynamicResource MainForegroundColor}" />
+                </Grid>
+            </Border>
+
+            <!-- ======================== TAB CONTENT ========================= -->
+            <ContentControl Content="{Binding SelectedTab.Content}" />
+        </DockPanel>
+    </Border>
+</Window>

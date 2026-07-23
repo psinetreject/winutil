@@ -1,0 +1,14 @@
+<Application x:Class="WinUtil.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Startup is driven by the generic host in App.xaml.cs (no StartupUri).
+         ThemeService additionally injects the themes.json colour/metric tokens into
+         Application.Resources at runtime; the styles below consume them via DynamicResource. -->
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Theming/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

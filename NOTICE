@@ -1,0 +1,30 @@
+WinUtil — .NET 10 rewrite (unofficial)
+======================================
+
+This project is an unofficial rewrite of Chris Titus Tech's WinUtil from
+PowerShell into a .NET 10 / C# (WPF) application. It is NOT affiliated with,
+endorsed by, or maintained by Chris Titus Tech or CT Tech Group LLC.
+
+Original project
+----------------
+  ChrisTitusTech/winutil  —  https://github.com/ChrisTitusTech/winutil
+  Licensed under the MIT License, Copyright (c) 2022 CT Tech Group LLC
+  (see LICENSE).
+
+Material derived from the original project
+------------------------------------------
+The following are copied or adapted from ChrisTitusTech/winutil and remain
+under its MIT License:
+
+  - Configuration data — config/*.json and dotnet/config/*.json
+    (the application catalog and the tweak / appx / feature / dns / preset /
+    theme definitions).
+  - tools/autounattend.xml and its embedded copy used by the ISO builder.
+  - The overall feature set, tweak semantics, and UI layout, which this
+    project reimplements in C#.
+
+New work
+--------
+New source in the dotnet/ tree (C# code, WPF UI, build tooling) is
+Copyright (c) 2026 the WinUtil .NET rewrite contributors and is made available
+under the MIT License (the same terms as LICENSE).

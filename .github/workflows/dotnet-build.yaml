@@ -1,0 +1,52 @@
+name: .NET Build
+
+on:
+  push:
+    paths:
+      - "dotnet/**"
+      - ".github/workflows/dotnet-build.yaml"
+  pull_request:
+    paths:
+      - "dotnet/**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: dotnet
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test (platform-agnostic Core)
+        run: dotnet test tests/WinUtil.Tests --configuration Release --no-build
+
+      - name: Publish self-contained single-file (win-x64)
+        run: >
+          dotnet publish src/WinUtil.App -c Release -r win-x64 --self-contained
+          -p:PublishSingleFile=true -p:PublishReadyToRun=true -o publish/win-x64
+
+      # - name: Code sign (requires WINUTIL_CERT / WINUTIL_CERT_PASS secrets)
+      #   run: |
+      #     signtool sign /fd SHA256 /f cert.pfx /p ${{ secrets.WINUTIL_CERT_PASS }} `
+      #       /tr http://timestamp.digicert.com /td SHA256 publish/win-x64/WinUtil.exe
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: winutil-win-x64
+          path: dotnet/publish/win-x64/WinUtil.exe
+          if-no-files-found: error

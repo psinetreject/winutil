@@ -1,0 +1,227 @@
+<UserControl x:Class="WinUtil.App.Views.InstallView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:WinUtil.App.ViewModels"
+             Background="{DynamicResource MainBackgroundColor}"
+             TextElement.Foreground="{DynamicResource MainForegroundColor}">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+        <!-- FOSS green dot (matches the PowerShell tool's RGB 110,255,114). -->
+        <SolidColorBrush x:Key="FossDotBrush" Color="#6EFF72" />
+
+        <!-- One filter chip. -->
+        <DataTemplate DataType="{x:Type vm:CategoryChipViewModel}">
+            <Button Content="{Binding Label}"
+                    Style="{DynamicResource FilterChipStyle}"
+                    Opacity="{Binding ChipOpacity}"
+                    Command="{Binding DataContext.FilterByCategoryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                    CommandParameter="{Binding Category}" />
+        </DataTemplate>
+
+        <!-- One application card: favicon (letter fallback), name, and a green FOSS dot. -->
+        <DataTemplate DataType="{x:Type vm:AppItemViewModel}">
+            <ToggleButton IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                          Cursor="Hand" Margin="4"
+                          ToolTip="{Binding Description}"
+                          HorizontalContentAlignment="Stretch">
+                <ToggleButton.Template>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Card"
+                                Style="{DynamicResource AppCardBorderStyle}"
+                                Width="200" Padding="8"
+                                BorderThickness="1" CornerRadius="4"
+                                BorderBrush="{DynamicResource BorderColor}"
+                                Background="{DynamicResource AppInstallUnselectedColor}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Favicon overlaid on a letter placeholder. -->
+                                <Grid Grid.Column="0" Width="28" Height="28" Margin="0,0,8,0">
+                                    <TextBlock Text="{Binding FallbackLetter}"
+                                               FontWeight="Bold" FontSize="16"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource ToggleButtonOnColor}" />
+                                    <Image Source="{Binding Favicon}" Stretch="Uniform"
+                                           RenderOptions.BitmapScalingMode="HighQuality" />
+                                </Grid>
+
+                                <!-- Name + FOSS dot. -->
+                                <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Name}"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               Foreground="{DynamicResource MainForegroundColor}" />
+                                    <Ellipse Width="8" Height="8" Margin="6,1,0,0"
+                                             VerticalAlignment="Center"
+                                             Fill="{StaticResource FossDotBrush}"
+                                             Visibility="{Binding IsFoss, Converter={StaticResource BoolToVis}}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Card" Property="Background"
+                                        Value="{DynamicResource AppInstallHighlightedColor}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Card" Property="Background"
+                                        Value="{DynamicResource AppInstallSelectedColor}" />
+                                <Setter TargetName="Card" Property="BorderBrush"
+                                        Value="{DynamicResource ButtonBackgroundSelectedColor}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </ToggleButton.Template>
+            </ToggleButton>
+        </DataTemplate>
+
+        <!-- One category: collapsible header + a wrap panel of app cards. -->
+        <DataTemplate DataType="{x:Type vm:FilteredCategoryViewModel}">
+            <StackPanel Margin="0,4,0,8"
+                        Visibility="{Binding HasVisibleItems, Converter={StaticResource BoolToVis}}">
+                <ToggleButton IsChecked="{Binding IsExpanded, Mode=TwoWay}"
+                              Cursor="Hand" HorizontalAlignment="Stretch"
+                              HorizontalContentAlignment="Left">
+                    <ToggleButton.Template>
+                        <ControlTemplate TargetType="ToggleButton">
+                            <Border Background="Transparent" Padding="2,4">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock x:Name="Glyph" Text="&#8722;&#160;"
+                                               FontWeight="Bold" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource LabelboxForegroundColor}" />
+                                    <TextBlock Text="{Binding Name}"
+                                               Style="{DynamicResource CategoryHeaderStyle}"
+                                               VerticalAlignment="Center"
+                                               Foreground="{DynamicResource LabelboxForegroundColor}" />
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked" Value="False">
+                                    <Setter TargetName="Glyph" Property="Text" Value="+&#160;" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </ToggleButton.Template>
+                </ToggleButton>
+
+                <ItemsControl ItemsSource="{Binding ItemsView}"
+                              Margin="4,4,0,0"
+                              Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Filters chip row. -->
+        <WrapPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
+            <TextBlock Text="Filters" FontSize="16" FontWeight="SemiBold"
+                       VerticalAlignment="Center" Margin="10,0,8,0"
+                       Foreground="{DynamicResource LabelboxForegroundColor}" />
+            <ItemsControl ItemsSource="{Binding Chips}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </WrapPanel>
+
+        <!-- Two-pane body: fixed sidebar + scrolling card pane. -->
+        <Grid Grid.Row="1" Margin="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- LEFT SIDEBAR -->
+            <Border Grid.Column="0" Width="210" Margin="0,0,8,0"
+                    BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,1,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="0,0,8,0">
+                        <!-- Actions -->
+                        <TextBlock Text="Actions" Style="{DynamicResource SidebarSectionHeaderStyle}"
+                                   Foreground="{DynamicResource MainForegroundColor}"
+                                   FontWeight="Bold" Margin="4,4,0,4" />
+                        <Button Content="Install/Upgrade Applications"
+                                Style="{DynamicResource SidebarButtonStyle}"
+                                Command="{Binding InstallCommand}"
+                                HorizontalContentAlignment="Left" Margin="2" Padding="6,4" />
+                        <Button Content="Uninstall Applications"
+                                Style="{DynamicResource SidebarButtonStyle}"
+                                Command="{Binding UninstallCommand}"
+                                HorizontalContentAlignment="Left" Margin="2" Padding="6,4" />
+                        <Button Content="Upgrade all Applications"
+                                Style="{DynamicResource SidebarButtonStyle}"
+                                Command="{Binding UpgradeAllCommand}"
+                                HorizontalContentAlignment="Left" Margin="2" Padding="6,4" />
+
+                        <!-- Package Manager -->
+                        <TextBlock Text="Package Manager" Style="{DynamicResource SidebarSectionHeaderStyle}"
+                                   Foreground="{DynamicResource MainForegroundColor}"
+                                   FontWeight="Bold" Margin="4,12,0,4" />
+                        <RadioButton Content="Chocolatey" GroupName="InstallPackageManager"
+                                     Margin="4,2" Foreground="{DynamicResource MainForegroundColor}"
+                                     IsChecked="{Binding IsChoco, Mode=TwoWay}" />
+                        <RadioButton Content="WinGet" GroupName="InstallPackageManager"
+                                     Margin="4,2" Foreground="{DynamicResource MainForegroundColor}"
+                                     IsChecked="{Binding IsWinget, Mode=TwoWay}" />
+
+                        <!-- Selection -->
+                        <TextBlock Text="Selection" Style="{DynamicResource SidebarSectionHeaderStyle}"
+                                   Foreground="{DynamicResource MainForegroundColor}"
+                                   FontWeight="Bold" Margin="4,12,0,4" />
+                        <StackPanel Orientation="Horizontal" Margin="4,2,4,6">
+                            <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                                     Fill="{StaticResource FossDotBrush}" />
+                            <TextBlock Text="Free and Open Source Software"
+                                       Margin="6,0,0,0" FontSize="11" TextWrapping="Wrap"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource MainForegroundColor}" />
+                        </StackPanel>
+                        <Button Content="Clear Selection"
+                                Style="{DynamicResource SidebarButtonStyle}"
+                                Command="{Binding ClearSelectionCommand}"
+                                HorizontalContentAlignment="Left" Margin="2" Padding="6,4" />
+                        <Button Content="Collapse All Categories"
+                                Style="{DynamicResource SidebarButtonStyle}"
+                                Command="{Binding CollapseAllCommand}"
+                                HorizontalContentAlignment="Left" Margin="2" Padding="6,4" />
+                        <Button Content="Expand All Categories"
+                                Style="{DynamicResource SidebarButtonStyle}"
+                                Command="{Binding ExpandAllCommand}"
+                                HorizontalContentAlignment="Left" Margin="2" Padding="6,4" />
+                        <TextBlock Text="{Binding SelectedCount, StringFormat='Selected Apps: {0}'}"
+                                   Margin="6,8,0,4" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource MainForegroundColor}" />
+                        <Button Content="Show Installed Apps"
+                                Style="{DynamicResource SidebarButtonStyle}"
+                                Command="{Binding ShowInstalledCommand}"
+                                HorizontalContentAlignment="Left" Margin="2" Padding="6,4" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- RIGHT PANE: categories of app cards -->
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled" Padding="4,0,4,0">
+                <ItemsControl ItemsSource="{Binding Categories}" />
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>
