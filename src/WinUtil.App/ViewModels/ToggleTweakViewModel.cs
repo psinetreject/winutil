@@ -68,9 +68,11 @@ public partial class ToggleTweakViewModel : ObservableObject
         _shell.Report(TaskProgress.Indeterminate($"{(value ? "Enabling" : "Disabling")} {Content}…"));
         try
         {
-            var result = value
-                ? await _engine.ApplyAsync(Tweak, _shell.Progress).ConfigureAwait(true)
-                : await _engine.UndoAsync(Tweak, _shell.Progress).ConfigureAwait(true);
+            // Run the engine off the UI thread so a blocking custom action (e.g. restarting Explorer)
+            // can never freeze the window.
+            var result = await Task.Run(() => value
+                ? _engine.ApplyAsync(Tweak, _shell.Progress)
+                : _engine.UndoAsync(Tweak, _shell.Progress)).ConfigureAwait(true);
 
             if (result.Success)
             {

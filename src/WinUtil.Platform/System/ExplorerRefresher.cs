@@ -54,10 +54,14 @@ public sealed class ExplorerRefresher : IExplorerRefresher
             }
         }
 
-        // Relaunch the shell in case Windows did not respawn it automatically.
+        // Relaunch the shell in case Windows did not respawn it automatically. Use CreateProcess
+        // (UseShellExecute = false); ShellExecute routes through the shell we just killed and can hang
+        // until it respawns — which previously froze the tweak operation indefinitely.
         try
         {
-            Process.Start(new ProcessStartInfo("explorer.exe") { UseShellExecute = true })?.Dispose();
+            var explorerPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
+            Process.Start(new ProcessStartInfo(explorerPath) { UseShellExecute = false })?.Dispose();
         }
         catch (Exception ex)
         {

@@ -211,9 +211,9 @@ public partial class TweaksViewModel : TabViewModelBase
                 var percent = (int)(i / (double)items.Count * 100);
                 Shell.Report(new TaskProgress(percent, $"{(apply ? "Applying" : "Reverting")} {item.Content}…"));
 
-                var result = apply
-                    ? await _engine.ApplyAsync(item.Tweak, Shell.Progress).ConfigureAwait(true)
-                    : await _engine.UndoAsync(item.Tweak, Shell.Progress).ConfigureAwait(true);
+                var result = await Task.Run(() => apply
+                    ? _engine.ApplyAsync(item.Tweak, Shell.Progress)
+                    : _engine.UndoAsync(item.Tweak, Shell.Progress)).ConfigureAwait(true);
 
                 if (!result.Success)
                 {

@@ -62,4 +62,14 @@ public partial class ShellState : ObservableObject
         ProgressState = progress.State;
         IsIndeterminate = progress.State == ProgressState.Indeterminate;
     }
+
+    // Safety net: whenever the busy guard clears, stop any indeterminate animation — a late async
+    // progress callback must never leave the progress bar looping forever.
+    partial void OnIsBusyChanged(bool value)
+    {
+        if (!value)
+        {
+            IsIndeterminate = false;
+        }
+    }
 }
