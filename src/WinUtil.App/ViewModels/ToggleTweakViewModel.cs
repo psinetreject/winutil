@@ -59,7 +59,7 @@ public partial class ToggleTweakViewModel : ObservableObject
     {
         if (_shell.IsBusy)
         {
-            Revert(value);
+            SyncToLiveState();
             _shell.Report(TaskProgress.Failed("Another operation is running — try again shortly."));
             return;
         }
@@ -74,31 +74,43 @@ public partial class ToggleTweakViewModel : ObservableObject
                 ? _engine.ApplyAsync(Tweak, _shell.Progress)
                 : _engine.UndoAsync(Tweak, _shell.Progress)).ConfigureAwait(true);
 
-            if (result.Success)
-            {
-                _shell.Report(TaskProgress.Completed(result.Message ?? $"{Content} updated."));
-            }
-            else
-            {
-                Revert(value);
-                _shell.Report(TaskProgress.Failed(result.Message ?? $"Failed to update {Content}."));
-            }
+            _shell.Report(result.Success
+                ? TaskProgress.Completed(result.Message ?? $"{Content} updated.")
+                : TaskProgress.Failed(result.Message ?? $"Failed to update {Content}."));
         }
         catch (Exception ex)
         {
-            Revert(value);
             _shell.Report(TaskProgress.Failed(ex.Message));
         }
         finally
         {
+            // Reflect the ACTUAL live system state — whether the apply fully succeeded, only partially
+            // applied, or failed — so the switch never disagrees with what's really set. (Previously a
+            // partial sub-failure snapped the switch back even though the registry change had applied,
+            // so the change only "appeared" after a relaunch re-read the state.)
+            SyncToLiveState();
             _shell.IsBusy = false;
         }
     }
 
-    private void Revert(bool attempted)
+    /// <summary>Sets the switch to the current live system state without triggering another apply.</summary>
+    private void SyncToLiveState()
     {
-        _suppress = true;
-        IsOn = !attempted;
-        _suppress = false;
+        bool live;
+        try
+        {
+            live = _engine.GetToggleState(Tweak);
+        }
+        catch
+        {
+            return;
+        }
+
+        if (live != IsOn)
+        {
+            _suppress = true;
+            IsOn = live;
+            _suppress = false;
+        }
     }
 }
