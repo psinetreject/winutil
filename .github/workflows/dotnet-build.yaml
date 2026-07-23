@@ -3,19 +3,19 @@ name: .NET Build
 on:
   push:
     paths:
-      - "dotnet/**"
+      - "src/**"
+      - "tests/**"
+      - "config/**"
+      - "*.slnx"
+      - "global.json"
+      - "Directory.Build.props"
       - ".github/workflows/dotnet-build.yaml"
   pull_request:
-    paths:
-      - "dotnet/**"
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: dotnet
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,5 +48,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: winutil-win-x64
-          path: dotnet/publish/win-x64/WinUtil.exe
+          path: publish/win-x64/WinUtil.exe
           if-no-files-found: error

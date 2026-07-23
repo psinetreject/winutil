@@ -1,9 +1,0 @@
-bin/
-obj/
-publish/
-.vs/
-*.user
-*.binlog
-
-# scratch screenshots used during UI iteration (not part of the project)
-Screenshot*.png

@@ -1,20 +1,13 @@
-# winutil
-System.Management.Automation.dll
-Microsoft.PowerShell.ConsoleHost.dll
-
-winutil.exe.config
-winutil.ps1
-binary/
-testResults.xml
-
-# general software/os specific
-desktop.ini
-.DS_Store
-
-.vscode/
+bin/
+obj/
+publish/
+.vs/
 .idea/
+*.user
+*.binlog
 
-# hugo files
-docs/public/
-docs/.hugo_build.lock
-docs/resources/
+# scratch screenshots used during UI iteration (not part of the project)
+Screenshot*.png
+
+# Claude Code local project data
+.claude/

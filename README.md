@@ -6,37 +6,37 @@
 
 A Windows setup / debloat / tweak utility — install apps, apply tweaks, manage Windows Update, and
 build custom Windows 11 install media — rebuilt from the original single-file PowerShell tool into a
-typed, testable, layered .NET application.
+typed, testable, layered .NET application with **no PowerShell dependency**.
 
 ## Build & run (Windows)
 
-The .NET solution lives in **[`dotnet/`](dotnet/)** (requires the .NET 10 SDK on Windows):
+Requires the **.NET 10 SDK** on Windows (WPF is Windows-only):
 
 ```powershell
-cd dotnet
 dotnet build -c Release
 dotnet run --project src/WinUtil.App -c Release   # runs elevated (admin)
 ```
 
-See [`dotnet/README.md`](dotnet/README.md) and [`dotnet/docs/`](dotnet/docs/) — build notes, parity
-status, and the per-tweak port inventory.
+See [`docs/`](docs/) for build notes, parity status, and the per-tweak port inventory.
 
 ## Repository layout
 
 | Path | What it is |
 |---|---|
-| **[`dotnet/`](dotnet/)** | The .NET 10 rewrite — `Core` (domain + config) · `Platform` (Windows services) · `App` (WPF UI) · `Tests` |
-| **[`legacy/`](legacy/)** | The original PowerShell WinUtil, kept for reference |
+| [`src/WinUtil.Core`](src/WinUtil.Core) | Platform-agnostic domain: config models + loaders, tweak engine + custom actions |
+| [`src/WinUtil.Platform`](src/WinUtil.Platform) | Pure-C# Windows layer: registry, services, winget/choco, Appx (WinRT), DISM, power, DNS, restore, tasks, MicroWin ISO |
+| [`src/WinUtil.App`](src/WinUtil.App) | WPF MVVM UI (Install / Tweaks / Config / Updates) + theming |
+| [`tests/WinUtil.Tests`](tests/WinUtil.Tests) | xUnit |
+| [`config/`](config/) | Embedded JSON (apps, tweaks, appx, dns, presets, themes) + `autounattend.xml` |
 
 ## Status
 
-Approaching parity with the original: the install flow, tweak engine, and most of the UI work;
-some fixes/updates backends and the Win11-ISO / AppX views are still in progress. Details in
-[`dotnet/docs/PARITY-STATUS.md`](dotnet/docs/PARITY-STATUS.md).
+Approaching parity with the original: the install flow, tweak engine, and most of the UI work; some
+fixes/updates backends and the Win11-ISO / AppX views are still in progress. Details in
+[`docs/PARITY-STATUS.md`](docs/PARITY-STATUS.md).
 
 ## Credits & license
 
-This project reuses the original's configuration data (application catalog, tweak/appx/feature
-definitions) and `autounattend.xml`, and reimplements its feature set in C#. The original is
-MIT-licensed, © 2022 CT Tech Group LLC — see [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE) for
-attribution. New code in `dotnet/` is likewise available under the MIT License.
+Reuses the original's configuration data (application catalog, tweak/appx/feature definitions) and
+`autounattend.xml`, and reimplements its feature set in C#. The original is MIT-licensed, © 2022 CT
+Tech Group LLC — see [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE). New code is likewise MIT.
