@@ -27,11 +27,25 @@ public static class ConfigLoader
             Dns = dns,
             Presets = presets.ToDictionary(kvp => kvp.Key, kvp => (IReadOnlyList<string>)kvp.Value),
             Themes = themes.ToDictionary(kvp => kvp.Key, kvp => (IReadOnlyDictionary<string, JsonElement>)kvp.Value),
-            // Stamp each tweak/feature's Id from its dictionary key.
-            Tweaks = tweaks.ToDictionary(kvp => kvp.Key, kvp => kvp.Value with { Id = kvp.Key }),
-            Features = features.ToDictionary(kvp => kvp.Key, kvp => kvp.Value with { Id = kvp.Key }),
+            // Stamp each tweak/feature's Id from its dictionary key, and normalize collections that
+            // System.Text.Json leaves null when the JSON omits them (property initializers like `= []`
+            // are NOT applied to absent properties, so a registry-only tweak comes back Services==null).
+            Tweaks = tweaks.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value with
+                {
+                    Id = kvp.Key,
+                    Registry = OrEmpty(kvp.Value.Registry),
+                    Services = OrEmpty(kvp.Value.Services),
+                }),
+            Features = features.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value with { Id = kvp.Key, Features = OrEmpty(kvp.Value.Features) }),
         };
     }
+
+    /// <summary>Normalizes a possibly-null deserialized collection to an empty list.</summary>
+    private static IReadOnlyList<T> OrEmpty<T>(IReadOnlyList<T>? list) => list ?? [];
 
     private static T Deserialize<T>(string logicalName, JsonTypeInfo<T> typeInfo)
     {
