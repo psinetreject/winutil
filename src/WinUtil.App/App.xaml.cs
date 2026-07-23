@@ -22,9 +22,12 @@ public partial class App : Application
         // Attach global handlers first so nothing fails silently.
         AppDomain.CurrentDomain.UnhandledException += (_, ev) =>
             ShowFatal(ev.ExceptionObject as Exception, "AppDomain.UnhandledException");
+        // A dispatcher (UI-thread) exception — often a recoverable binding glitch — must NOT kill the
+        // app. Log it and keep running; only genuinely fatal startup failures shut the app down.
         DispatcherUnhandledException += (_, ev) =>
         {
-            ShowFatal(ev.Exception, "DispatcherUnhandledException");
+            try { Log.Error(ev.Exception, "Unhandled dispatcher exception (recovered)"); }
+            catch (Exception) { /* logging may be down */ }
             ev.Handled = true;
         };
 

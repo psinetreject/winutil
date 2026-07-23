@@ -17,8 +17,10 @@
          Real compiler warnings still fail the build. -->
     <NoWarn>$(NoWarn);NU1603;NU1602;CA1000;CA1716;CA1720;CA1848;CA1852;CA1873;CA2254</NoWarn>
     <AnalysisLevel>latest</AnalysisLevel>
-    <!-- NOTE: InvariantGlobalization must stay OFF — it breaks WPF data binding
-         (XmlLanguage.GetSpecificCulture on the default en-US xml:lang throws). -->
+    <!-- InvariantGlobalization MUST be off: WPF data binding calls XmlLanguage.GetSpecificCulture on
+         the default en-US xml:lang, which throws under invariant globalization. Set explicitly to
+         false so no inherited/cached default can turn it back on. -->
+    <InvariantGlobalization>false</InvariantGlobalization>
     <Product>WinUtil</Product>
   </PropertyGroup>
 
